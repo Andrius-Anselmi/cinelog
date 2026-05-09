@@ -20,7 +20,6 @@ public class MovieController {
 
     private final MovieService service;
 
-
     @GetMapping()
     public ResponseEntity<List<MovieResponse>> getAll(){
         return ResponseEntity.ok(service.findAll().stream().map((MovieMapper::toMovieResponse)).toList());
@@ -31,11 +30,11 @@ public class MovieController {
         return ResponseEntity.status(HttpStatus.CREATED).body(MovieMapper.toMovieResponse(service.save(MovieMapper.toMovie(request))));
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<MovieResponse> getById(@PathVariable Long id){
         return service.findById(id).map(movie -> ResponseEntity.ok(MovieMapper.toMovieResponse(movie))).orElse(ResponseEntity.notFound().build());
     }
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable Long id){
         Optional<Movie> optionalMovie = service.findById(id);
         if(optionalMovie.isPresent()){
@@ -57,6 +56,5 @@ public class MovieController {
        return ResponseEntity.ok(service.findByCategory(category).stream().map(MovieMapper::toMovieResponse).toList());
 
     }
-
 
 }

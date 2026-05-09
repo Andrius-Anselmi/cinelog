@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/cinelog/category")
@@ -36,12 +37,22 @@ public class CategoryController {
                 orElse(ResponseEntity.notFound().build());
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryResponse> update(@PathVariable Long id, @RequestBody CategoryRequest request) {
+        return categoryService.updateCategoryById(id, CategoryMapper.toCategory(request)).
+                map(category -> ResponseEntity.ok(CategoryMapper.
+                        toCategoryResponse(category))).orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteByCategoryId(@PathVariable Long id){
-        categoryService.deletCategoryById(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    public ResponseEntity<Void> deleteByCategoryId(@PathVariable Long id){
+        Optional<Category> optionalCategory = categoryService.findCategoryById(id);
+        if(optionalCategory.isPresent()){
+            categoryService.deleteCategoryById(id);
+            return ResponseEntity.noContent().build();
+        }
 
-
+        return ResponseEntity.notFound().build();
     }
 
 }

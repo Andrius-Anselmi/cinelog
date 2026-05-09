@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/cinelog/streaming")
@@ -31,17 +32,28 @@ public class StreamingController {
                 StreamingMapper.toStreamingResponse(savedStreaming));
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
      public ResponseEntity<StreamingResponse> getById(@PathVariable Long id){
         return service.findById(id).
                 map((streaming -> ResponseEntity.ok(StreamingMapper.toStreamingResponse(streaming)))).
         orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<?> deleteById(@PathVariable Long id){
-        service.deleteById(id);
-        return ResponseEntity.noContent().build();
+    @PutMapping("{id}")
+    public ResponseEntity<StreamingResponse> update(@PathVariable Long id, @RequestBody StreamingRequest request){
+        return service.updateById(id,StreamingMapper.toStreaming(request)).
+                map(streaming -> ResponseEntity.ok(StreamingMapper.toStreamingResponse(streaming))).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable Long id){
+        Optional<Streaming> optionalStreaming = service.findById(id);
+        if(optionalStreaming.isPresent()){
+            service.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.notFound().build();
     }
 
 
