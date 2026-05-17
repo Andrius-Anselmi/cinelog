@@ -1,4 +1,4 @@
-package com.cinelog.controller.response;
+package com.cinelog.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;

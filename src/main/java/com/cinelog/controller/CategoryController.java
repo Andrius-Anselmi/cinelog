@@ -1,8 +1,8 @@
 package com.cinelog.controller;
 
-import com.cinelog.controller.request.CategoryRequest;
+import com.cinelog.request.CategoryRequest;
 
-import com.cinelog.controller.response.CategoryResponse;
+import com.cinelog.response.CategoryResponse;
 import com.cinelog.entity.Category;
 import com.cinelog.mapper.CategoryMapper;
 import com.cinelog.service.CategoryService;

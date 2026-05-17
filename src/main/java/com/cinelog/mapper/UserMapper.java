@@ -1,7 +1,7 @@
 package com.cinelog.mapper;
 
-import com.cinelog.controller.request.UserRequest;
-import com.cinelog.controller.response.UserResponse;
+import com.cinelog.request.UserRequest;
+import com.cinelog.response.UserResponse;
 ;
 import com.cinelog.entity.User;
 import lombok.experimental.UtilityClass;

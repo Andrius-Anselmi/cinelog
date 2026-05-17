@@ -1,4 +1,4 @@
-package com.cinelog.controller.request;
+package com.cinelog.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 

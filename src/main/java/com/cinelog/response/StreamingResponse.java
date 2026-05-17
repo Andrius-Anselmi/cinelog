@@ -1,4 +1,4 @@
-package com.cinelog.controller.response;
+package com.cinelog.response;
 
 import lombok.Builder;
 

@@ -1,7 +1,7 @@
 package com.cinelog.mapper;
 
-import com.cinelog.controller.request.StreamingRequest;
-import com.cinelog.controller.response.StreamingResponse;
+import com.cinelog.request.StreamingRequest;
+import com.cinelog.response.StreamingResponse;
 import com.cinelog.entity.Streaming;
 import lombok.experimental.UtilityClass;
 

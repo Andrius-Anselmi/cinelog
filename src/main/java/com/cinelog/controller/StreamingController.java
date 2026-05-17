@@ -1,7 +1,7 @@
 package com.cinelog.controller;
 
-import com.cinelog.controller.request.StreamingRequest;
-import com.cinelog.controller.response.StreamingResponse;
+import com.cinelog.request.StreamingRequest;
+import com.cinelog.response.StreamingResponse;
 import com.cinelog.entity.Streaming;
 import com.cinelog.mapper.StreamingMapper;
 import com.cinelog.service.StreamingService;

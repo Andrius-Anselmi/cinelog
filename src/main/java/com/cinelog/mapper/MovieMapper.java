@@ -1,9 +1,9 @@
 package com.cinelog.mapper;
 
-import com.cinelog.controller.request.MovieRequest;
-import com.cinelog.controller.response.CategoryResponse;
-import com.cinelog.controller.response.MovieResponse;
-import com.cinelog.controller.response.StreamingResponse;
+import com.cinelog.request.MovieRequest;
+import com.cinelog.response.CategoryResponse;
+import com.cinelog.response.MovieResponse;
+import com.cinelog.response.StreamingResponse;
 import com.cinelog.entity.Category;
 import com.cinelog.entity.Movie;
 import com.cinelog.entity.Streaming;

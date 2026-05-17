@@ -1,7 +1,7 @@
 package com.cinelog.controller;
 
-import com.cinelog.controller.request.MovieRequest;
-import com.cinelog.controller.response.MovieResponse;
+import com.cinelog.request.MovieRequest;
+import com.cinelog.response.MovieResponse;
 import com.cinelog.entity.Movie;
 import com.cinelog.mapper.MovieMapper;
 import com.cinelog.service.MovieService;
