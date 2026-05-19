@@ -5,6 +5,7 @@ import com.cinelog.response.StreamingResponse;
 import com.cinelog.entity.Streaming;
 import com.cinelog.mapper.StreamingMapper;
 import com.cinelog.service.StreamingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class StreamingController {
     }
 
     @PostMapping()
-    public ResponseEntity<StreamingResponse> save(@RequestBody StreamingRequest streaming){
+    public ResponseEntity<StreamingResponse> save(@Valid @RequestBody StreamingRequest streaming){
         Streaming savedStreaming = service.save(StreamingMapper.toStreaming(streaming));
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 StreamingMapper.toStreamingResponse(savedStreaming));

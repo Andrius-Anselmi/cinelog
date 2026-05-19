@@ -1,4 +1,6 @@
 package com.cinelog.request;
 
-public record LoginRequest(String email,String password) {
+import jakarta.validation.constraints.NotEmpty;
+
+public record LoginRequest(@NotEmpty(message = "email is required") String email, @NotEmpty(message = "password is required") String password) {
 }

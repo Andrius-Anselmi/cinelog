@@ -6,6 +6,7 @@ import com.cinelog.response.CategoryResponse;
 import com.cinelog.entity.Category;
 import com.cinelog.mapper.CategoryMapper;
 import com.cinelog.service.CategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class CategoryController {
     }
 
     @PostMapping()
-    public ResponseEntity<CategoryResponse> saveCategory(@RequestBody CategoryRequest request){
+    public ResponseEntity<CategoryResponse> saveCategory(@Valid @RequestBody CategoryRequest request){
          Category savedCategory = categoryService.saveCategory(CategoryMapper.toCategory(request));
          return ResponseEntity.status(HttpStatus.CREATED).body(CategoryMapper.toCategoryResponse(savedCategory));
     }

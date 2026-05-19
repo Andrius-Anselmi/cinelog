@@ -5,6 +5,7 @@ import com.cinelog.response.MovieResponse;
 import com.cinelog.entity.Movie;
 import com.cinelog.mapper.MovieMapper;
 import com.cinelog.service.MovieService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class MovieController {
     }
 
     @PostMapping()
-    public ResponseEntity<MovieResponse> saveMovie(@RequestBody MovieRequest request){
+    public ResponseEntity<MovieResponse> saveMovie(@Valid @RequestBody MovieRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(MovieMapper.toMovieResponse(service.save(MovieMapper.toMovie(request))));
     }
 
@@ -46,7 +47,7 @@ public class MovieController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MovieResponse> update(@PathVariable Long id, @RequestBody MovieRequest request){
+    public ResponseEntity<MovieResponse> update(@PathVariable Long id, @Valid @RequestBody MovieRequest request){
         return service.updateById(id, MovieMapper.toMovie(request)).map(movie -> ResponseEntity.ok(MovieMapper.toMovieResponse(movie))).
                 orElse(ResponseEntity.notFound().build());
     }
