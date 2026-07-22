@@ -36,16 +36,6 @@
 
 ---
 
-## O Problema
-
-Construir uma API de catálogo de filmes é fácil. Construir uma que aguente produção não é.
-
-A maioria dos tutoriais te dá um `@RestController` que fala diretamente com o banco de dados, retorna sua entidade JPA como JSON, e pronto. Isso funciona até não funcionar — até um relacionamento lazy-loaded disparar mil queries extras, até uma refatoração quebrar o contrato da API, até alguém rodar a aplicação numa máquina nova e o schema estar fora de sincronia, até não haver autenticação nenhuma e qualquer um poder acessar seus endpoints.
-
-O CineLog é construído em torno das decisões que evitam essas falhas: autenticação stateless baseada em JWT, uma arquitetura estrita de quatro camadas, DTOs que desacoplam o contrato da API do modelo de domínio, tratamento centralizado de exceções, Flyway para migrações de schema, e configuração via variáveis de ambiente.
-
----
-
 ## Início Rápido
 
 **Pré-requisitos:** JDK 17+, Maven 3.8+, Docker
