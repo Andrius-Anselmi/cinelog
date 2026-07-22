@@ -2,8 +2,8 @@
 
 # CineLog
 
-### A production-grade REST API for movies, streaming platforms and categories.
-### Built the right way — JWT security, layered architecture, zero shortcuts, full DTO encapsulation.
+### Uma API REST de nível de produção para filmes, plataformas de streaming e categorias.
+### Construída da forma certa — segurança com JWT, arquitetura em camadas, zero atalhos, encapsulamento total via DTO.
 
 &nbsp;
 
@@ -19,148 +19,148 @@
 
 &nbsp;
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [API Reference](#api-reference) · [Security](#security) · [Design Decisions](#design-decisions) · [Roadmap](#roadmap)
+[Início Rápido](#início-rápido) · [Arquitetura](#arquitetura) · [Referência da API](#referência-da-api) · [Segurança](#segurança) · [Decisões de Design](#decisões-de-design) · [Roadmap](#roadmap)
 
 &nbsp;
 
 | | | |
 |---|---|---|
-| **4 layers** strictly separated | **JWT** stateless authentication | **12-Factor** compliant config |
-| **Zero** domain model leakage | **Custom exceptions** & global handler | **Flyway** version-controlled schema |
+| **4 camadas** estritamente separadas | Autenticação **JWT** stateless | Configuração compatível com **12-Factor** |
+| **Zero** vazamento do modelo de domínio | **Exceções customizadas** e handler global | Schema versionado com **Flyway** |
 
 </div>
 
 ---
 
-> ⚠️ **Work in progress** — core API is stable and functional. Exception coverage, refactoring, and filtering features are actively being developed. See the [Roadmap](#roadmap) for what's coming next.
+> ⚠️ **Trabalho em andamento** — a API principal está estável e funcional. Cobertura de exceções, refatoração e recursos de filtragem estão em desenvolvimento ativo. Veja o [Roadmap](#roadmap) para saber o que vem por aí.
 
 ---
 
-## The Problem
+## O Problema
 
-Building a movie catalog API is easy. Building one that holds up in production is not.
+Construir uma API de catálogo de filmes é fácil. Construir uma que aguente produção não é.
 
-Most tutorials give you a `@RestController` that talks directly to the database, returns your JPA entity as JSON, and calls it a day. That works until it doesn't — until a lazy-loaded relationship triggers a thousand extra queries, until a refactor breaks the API contract, until someone runs the app on a new machine and the schema is out of sync, until there's no authentication and anyone can hit your endpoints.
+A maioria dos tutoriais te dá um `@RestController` que fala diretamente com o banco de dados, retorna sua entidade JPA como JSON, e pronto. Isso funciona até não funcionar — até um relacionamento lazy-loaded disparar mil queries extras, até uma refatoração quebrar o contrato da API, até alguém rodar a aplicação numa máquina nova e o schema estar fora de sincronia, até não haver autenticação nenhuma e qualquer um poder acessar seus endpoints.
 
-CineLog is built around the decisions that prevent those failures: JWT-based stateless authentication, a strict four-layer architecture, DTOs that decouple the API contract from the domain model, centralized exception handling, Flyway for schema migrations, and environment-variable-driven config.
+O CineLog é construído em torno das decisões que evitam essas falhas: autenticação stateless baseada em JWT, uma arquitetura estrita de quatro camadas, DTOs que desacoplam o contrato da API do modelo de domínio, tratamento centralizado de exceções, Flyway para migrações de schema, e configuração via variáveis de ambiente.
 
 ---
 
-## Quick Start
+## Início Rápido
 
-**Prerequisites:** JDK 17+, Maven 3.8+, Docker
+**Pré-requisitos:** JDK 17+, Maven 3.8+, Docker
 
 ```bash
 git clone https://github.com/Andrius-Anselmi/cinelog.git
 cd cinelog
 ```
 
-Start PostgreSQL via Docker:
+Suba o PostgreSQL via Docker:
 
 ```bash
 docker compose up -d
 ```
 
-Set environment variables:
+Defina as variáveis de ambiente:
 
 ```bash
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/cinelog
-export SPRING_DATASOURCE_USERNAME=your_username
-export SPRING_DATASOURCE_PASSWORD=your_password
-export CINELOG_API_SECRET=your_jwt_secret_here
+export SPRING_DATASOURCE_USERNAME=seu_usuario
+export SPRING_DATASOURCE_PASSWORD=sua_senha
+export CINELOG_API_SECRET=seu_jwt_secret_aqui
 ```
 
-Build and run:
+Compile e rode:
 
 ```bash
 mvn clean install
 mvn spring-boot:run
 ```
 
-API available at `http://localhost:8080`. No manual schema setup needed — Flyway runs migrations automatically on startup.
+API disponível em `http://localhost:8080`. Não é necessário configurar o schema manualmente — o Flyway roda as migrações automaticamente na inicialização.
 
-> **Note:** All endpoints except `/user/register` and `/user/login` require a valid JWT token.
+> **Nota:** Todos os endpoints, exceto `/user/register` e `/user/login`, exigem um token JWT válido.
 
 ---
 
-## Architecture
+## Arquitetura
 
-Four layers. Each one knows nothing about the others except the interface it depends on.
+Quatro camadas. Cada uma não sabe nada sobre as outras, exceto a interface da qual depende.
 
 ```
-  HTTP Request
+  Requisição HTTP
        │
        ▼
 ┌─────────────────────────────────────────────┐
-│  Security Layer                             │
-│  JWT validation on every request            │
+│  Camada de Segurança                        │
+│  Validação de JWT em toda requisição        │
 │  SecurityFilter + TokenService              │
 └────────────────────┬────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────┐
-│  Controller Layer                           │
-│  Handles HTTP, status codes, routing        │
-│  Returns DTOs — never domain models         │
+│  Camada de Controller                       │
+│  Lida com HTTP, status codes, roteamento    │
+│  Retorna DTOs — nunca modelos de domínio    │
 └────────────────────┬────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────┐
-│  Service Layer                              │
-│  All business rules live here               │
-│  Validates, orchestrates, transforms        │
-│  Throws typed exceptions on failure         │
+│  Camada de Service                          │
+│  Todas as regras de negócio vivem aqui      │
+│  Valida, orquestra, transforma              │
+│  Lança exceções tipadas em caso de falha    │
 └────────────────────┬────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────┐
-│  Repository Layer                           │
-│  Spring Data JPA — optimized queries        │
-│  Schema managed by Flyway migrations        │
+│  Camada de Repository                       │
+│  Spring Data JPA — queries otimizadas       │
+│  Schema gerenciado por migrações Flyway     │
 └────────────────────┬────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────┐
 │  PostgreSQL 15+ (Docker)                    │
-│  Source of truth — never exposed directly   │
+│  Fonte da verdade — nunca exposto diretamente│
 └─────────────────────────────────────────────┘
 ```
 
 ---
 
-## Security
+## Segurança
 
-Authentication is stateless and JWT-based. No sessions, no cookies.
+A autenticação é stateless e baseada em JWT. Sem sessões, sem cookies.
 
-**Register** a user, **login** to receive a token, then include it in every request:
-
-```
-Authorization: Bearer <your_token>
-```
-
-The `SecurityFilter` intercepts every request, validates the token via `TokenService`, and sets the authentication context. Invalid or missing tokens result in `403 Forbidden`.
-
-Passwords are hashed with **BCrypt** before being stored — plain-text passwords never touch the database.
+**Registre** um usuário, **faça login** para receber um token, e então inclua-o em toda requisição:
 
 ```
-POST /user/register  →  creates user, hashes password
-POST /user/login     →  validates credentials, returns JWT
-All other routes     →  require valid Bearer token
+Authorization: Bearer <seu_token>
+```
+
+O `SecurityFilter` intercepta toda requisição, valida o token via `TokenService`, e define o contexto de autenticação. Tokens inválidos ou ausentes resultam em `403 Forbidden`.
+
+As senhas são criptografadas com **BCrypt** antes de serem armazenadas — senhas em texto puro nunca chegam ao banco de dados.
+
+```
+POST /user/register  →  cria usuário, criptografa senha
+POST /user/login     →  valida credenciais, retorna JWT
+Todas as outras rotas →  exigem um Bearer token válido
 ```
 
 ---
 
-## Example Request
+## Exemplo de Requisição
 
-Creating a movie with categories and streaming platforms in a single request:
+Criando um filme com categorias e plataformas de streaming em uma única requisição:
 
 ```bash
 curl -X POST http://localhost:8080/cinelog/movie \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <your_token>" \
+  -H "Authorization: Bearer <seu_token>" \
   -d '{
     "title": "Inception",
-    "description": "A thief who steals secrets through dreams is given a chance to have his past erased.",
+    "description": "Um ladrão que rouba segredos através dos sonhos recebe a chance de ter seu passado apagado.",
     "releaseDate": "16/07/2010",
     "rating": 8.8,
     "categories": [1, 2],
@@ -172,7 +172,7 @@ curl -X POST http://localhost:8080/cinelog/movie \
 {
   "id": 1,
   "title": "Inception",
-  "description": "A thief who steals secrets through dreams is given a chance to have his past erased.",
+  "description": "Um ladrão que rouba segredos através dos sonhos recebe a chance de ter seu passado apagado.",
   "releaseDate": "16/07/2010",
   "rating": 8.8,
   "categories": [
@@ -187,90 +187,90 @@ curl -X POST http://localhost:8080/cinelog/movie \
 
 ---
 
-## API Reference
+## Referência da API
 
-### Auth
+### Autenticação
 
-| Method | Route | Description | Auth | Status |
+| Método | Rota | Descrição | Auth | Status |
 |--------|-------|-------------|------|--------|
-| `POST` | `/user/register` | Register a new user | ❌ | `201` |
-| `POST` | `/user/login` | Authenticate and receive JWT | ❌ | `200` |
+| `POST` | `/user/register` | Registra um novo usuário | ❌ | `201` |
+| `POST` | `/user/login` | Autentica e retorna JWT | ❌ | `200` |
 
-### Movies
+### Filmes
 
-| Method | Route | Description | Auth | Status |
+| Método | Rota | Descrição | Auth | Status |
 |--------|-------|-------------|------|--------|
-| `GET` | `/movie` | List all movies | ✅ | `200` |
-| `GET` | `/movie/{id}` | Get movie by ID | ✅ | `200` / `404` |
-| `GET` | `/movie/category/{id}` | Get movies by category | ✅ | `200` |
-| `POST` | `/movie` | Create a movie | ✅ | `201` |
-| `PUT` | `/movie/{id}` | Update a movie | ✅ | `200` / `404` |
-| `DELETE` | `/movie/{id}` | Delete a movie | ✅ | `204` / `404` |
+| `GET` | `/movie` | Lista todos os filmes | ✅ | `200` |
+| `GET` | `/movie/{id}` | Busca filme por ID | ✅ | `200` / `404` |
+| `GET` | `/movie/category/{id}` | Busca filmes por categoria | ✅ | `200` |
+| `POST` | `/movie` | Cria um filme | ✅ | `201` |
+| `PUT` | `/movie/{id}` | Atualiza um filme | ✅ | `200` / `404` |
+| `DELETE` | `/movie/{id}` | Remove um filme | ✅ | `204` / `404` |
 
-### Categories
+### Categorias
 
-| Method | Route | Description | Auth | Status |
+| Método | Rota | Descrição | Auth | Status |
 |--------|-------|-------------|------|--------|
-| `GET` | `/category` | List all categories | ✅ | `200` |
-| `GET` | `/category/{id}` | Get category by ID | ✅ | `200` / `404` |
-| `POST` | `/category` | Create a category | ✅ | `201` |
-| `PUT` | `/category/{id}` | Update a category | ✅ | `200` / `404` |
-| `DELETE` | `/category/{id}` | Delete a category | ✅ | `204` / `404` |
+| `GET` | `/category` | Lista todas as categorias | ✅ | `200` |
+| `GET` | `/category/{id}` | Busca categoria por ID | ✅ | `200` / `404` |
+| `POST` | `/category` | Cria uma categoria | ✅ | `201` |
+| `PUT` | `/category/{id}` | Atualiza uma categoria | ✅ | `200` / `404` |
+| `DELETE` | `/category/{id}` | Remove uma categoria | ✅ | `204` / `404` |
 
-### Streaming Platforms
+### Plataformas de Streaming
 
-| Method | Route | Description | Auth | Status |
+| Método | Rota | Descrição | Auth | Status |
 |--------|-------|-------------|------|--------|
-| `GET` | `/streaming` | List all platforms | ✅ | `200` |
-| `GET` | `/streaming/{id}` | Get platform by ID | ✅ | `200` / `404` |
-| `POST` | `/streaming` | Create a platform | ✅ | `201` |
-| `PUT` | `/streaming/{id}` | Update a platform | ✅ | `200` / `404` |
-| `DELETE` | `/streaming/{id}` | Delete a platform | ✅ | `204` / `404` |
+| `GET` | `/streaming` | Lista todas as plataformas | ✅ | `200` |
+| `GET` | `/streaming/{id}` | Busca plataforma por ID | ✅ | `200` / `404` |
+| `POST` | `/streaming` | Cria uma plataforma | ✅ | `201` |
+| `PUT` | `/streaming/{id}` | Atualiza uma plataforma | ✅ | `200` / `404` |
+| `DELETE` | `/streaming/{id}` | Remove uma plataforma | ✅ | `204` / `404` |
 
 ---
 
-## Exception Handling
+## Tratamento de Exceções
 
-Errors are handled globally via `GlobalExceptionHandler`. No try/catch blocks scattered across controllers.
+Os erros são tratados globalmente via `GlobalExceptionHandler`. Sem try/catch espalhados pelos controllers.
 
-| Exception | HTTP Status | When |
+| Exceção | Status HTTP | Quando ocorre |
 |-----------|-------------|------|
-| `NotFoundException` | `404 Not Found` | Resource not found by ID |
-| `ValidationException` | `400 Bad Request` | Invalid or missing request fields |
+| `NotFoundException` | `404 Not Found` | Recurso não encontrado pelo ID |
+| `ValidationException` | `400 Bad Request` | Campos da requisição inválidos ou ausentes |
 
-Error messages are centralized in `ExceptionMessages` — one constant per message, changed in one place.
+As mensagens de erro são centralizadas em `ExceptionMessages` — uma constante por mensagem, alterada em um único lugar.
 
-> ⚠️ Exception coverage is actively being expanded. More typed exceptions are on the way.
-
----
-
-## Design Decisions
-
-Every pattern here is a deliberate choice, not boilerplate.
-
-**JWT Authentication** — Stateless token-based security. No server-side session state. Every request is self-contained and independently verifiable. Scales horizontally without coordination.
-
-**DTO encapsulation** — JPA entities are never serialized into API responses. DTOs give the API a stable contract independent of the database schema. Rename a column, change a relationship — the client never knows.
-
-**Record-based DTOs** — `MovieRequest` and `MovieResponse` are Java Records. Immutable by design, concise by nature, and perfect for data carriers that should never change after construction.
-
-**Mapper pattern** — Conversion between entities and DTOs lives in dedicated `@UtilityClass` mappers. Controllers and services stay clean. Transformation logic stays testable and isolated.
-
-**Global exception handling** — `@RestControllerAdvice` intercepts typed exceptions and maps them to HTTP responses. Controllers and services stay clean. Error format is consistent across the entire API.
-
-**Bean Validation** — `@Valid` annotations enforce constraints at the controller boundary. Bad data is rejected before it reaches the service layer.
-
-**Flyway migrations** — Schema changes are version-controlled SQL files. Every environment runs the exact same migrations in the exact same order. No more schema drift between machines.
-
-**12-Factor config** — Database URL, credentials, and JWT secret come from environment variables. The same artifact runs in any environment without modification.
-
-**ManyToMany via join tables** — `movie_category` and `movie_streaming` are explicit join tables with named foreign key constraints — not Hibernate-generated defaults. Full control over the schema.
-
-**Timestamps by Hibernate** — `createdAt` and `updatedAt` are managed automatically via `@CreationTimestamp` and `@UpdateTimestamp`. No manual date handling anywhere.
+> ⚠️ A cobertura de exceções está sendo ativamente expandida. Mais exceções tipadas estão a caminho.
 
 ---
 
-## Database Schema
+## Decisões de Design
+
+Cada padrão aqui é uma escolha deliberada, não boilerplate.
+
+**Autenticação JWT** — Segurança stateless baseada em token. Sem estado de sessão no servidor. Cada requisição é autocontida e verificável de forma independente. Escala horizontalmente sem coordenação.
+
+**Encapsulamento via DTO** — Entidades JPA nunca são serializadas diretamente nas respostas da API. Os DTOs dão à API um contrato estável, independente do schema do banco de dados. Renomeie uma coluna, mude um relacionamento — o cliente nunca percebe.
+
+**DTOs baseados em Records** — `MovieRequest` e `MovieResponse` são Records do Java. Imutáveis por design, concisos por natureza, e perfeitos para carregadores de dados que nunca devem mudar após a construção.
+
+**Padrão Mapper** — A conversão entre entidades e DTOs vive em classes `@UtilityClass` dedicadas de mapper. Controllers e services permanecem limpos. A lógica de transformação permanece testável e isolada.
+
+**Tratamento global de exceções** — `@RestControllerAdvice` intercepta exceções tipadas e as mapeia para respostas HTTP. Controllers e services permanecem limpos. O formato de erro é consistente em toda a API.
+
+**Bean Validation** — Anotações `@Valid` aplicam restrições na fronteira do controller. Dados inválidos são rejeitados antes de chegar à camada de service.
+
+**Migrações com Flyway** — Alterações de schema são arquivos SQL versionados. Todo ambiente roda exatamente as mesmas migrações, na mesma ordem. Chega de schema dessincronizado entre máquinas.
+
+**Configuração 12-Factor** — URL do banco, credenciais e o segredo JWT vêm de variáveis de ambiente. O mesmo artefato roda em qualquer ambiente sem modificação.
+
+**ManyToMany via tabelas de junção** — `movie_category` e `movie_streaming` são tabelas de junção explícitas com chaves estrangeiras nomeadas — não as geradas por padrão pelo Hibernate. Controle total sobre o schema.
+
+**Timestamps pelo Hibernate** — `createdAt` e `updatedAt` são gerenciados automaticamente via `@CreationTimestamp` e `@UpdateTimestamp`. Nenhum tratamento manual de datas em lugar nenhum.
+
+---
+
+## Schema do Banco de Dados
 
 ```
 ┌───────────────┐       ┌──────────────────┐       ┌────────────┐
@@ -301,33 +301,33 @@ Every pattern here is a deliberate choice, not boilerplate.
 
 ## Roadmap
 
-Features actively being developed:
+Recursos em desenvolvimento ativo:
 
-- [ ] Expand custom exception coverage across all error scenarios
-- [ ] Refactor service and controller layers
-- [ ] Filter movies by category, streaming platform and rating
-- [ ] Pagination and sorting on list endpoints
-- [ ] Additional query endpoints (e.g. movies by streaming platform)
+- [ ] Expandir a cobertura de exceções customizadas para todos os cenários de erro
+- [ ] Refatorar as camadas de service e controller
+- [ ] Filtrar filmes por categoria, plataforma de streaming e avaliação
+- [ ] Paginação e ordenação nos endpoints de listagem
+- [ ] Endpoints de consulta adicionais (ex: filmes por plataforma de streaming)
 
 ---
 
-## Tech Stack
+## Stack Tecnológica
 
-| Component | Technology | Why |
+| Componente | Tecnologia | Por quê |
 |-----------|-----------|-----|
-| Language | Java 17 LTS | Records, pattern matching, long-term support |
-| Framework | Spring Boot 3.x | Industry standard, powerful DI ecosystem |
-| Security | Spring Security + JWT | Stateless, scalable authentication |
-| Validation | Spring Bean Validation | Declarative constraints at the boundary |
-| Persistence | Spring Data JPA + Hibernate | Clean abstraction over JDBC |
-| Database | PostgreSQL 15+ | Reliable, production-proven |
-| Container | Docker + Docker Compose | Reproducible environments |
-| Migrations | Flyway | Version-controlled schema |
-| Build | Maven 3.8+ | Predictable lifecycle |
+| Linguagem | Java 17 LTS | Records, pattern matching, suporte de longo prazo |
+| Framework | Spring Boot 3.x | Padrão da indústria, ecossistema de DI poderoso |
+| Segurança | Spring Security + JWT | Autenticação stateless e escalável |
+| Validação | Spring Bean Validation | Restrições declarativas na fronteira |
+| Persistência | Spring Data JPA + Hibernate | Abstração limpa sobre JDBC |
+| Banco de Dados | PostgreSQL 15+ | Confiável, comprovado em produção |
+| Container | Docker + Docker Compose | Ambientes reprodutíveis |
+| Migrações | Flyway | Schema versionado |
+| Build | Maven 3.8+ | Ciclo de vida previsível |
 
 ---
 
-## Project Structure
+## Estrutura do Projeto
 
 ```
 src/
@@ -335,32 +335,32 @@ src/
     └── java/
         └── dev/java/cinelog/
             ├── config/         # SecurityConfig, SecurityFilter, JWTuserData
-            ├── controller/     # HTTP layer — routes and status codes
-            ├── service/        # Business logic — rules and validation
-            ├── repository/     # Data access — JPA queries
-            ├── entity/         # Domain entities — source of truth
-            ├── mapper/         # DTO transformation
-            ├── request/        # Inbound DTOs
-            ├── response/       # Outbound DTOs
-            └── exception/      # Custom exceptions + GlobalExceptionHandler
+            ├── controller/     # Camada HTTP — rotas e status codes
+            ├── service/        # Lógica de negócio — regras e validação
+            ├── repository/     # Acesso a dados — queries JPA
+            ├── entity/         # Entidades de domínio — fonte da verdade
+            ├── mapper/         # Transformação de DTOs
+            ├── request/        # DTOs de entrada
+            ├── response/       # DTOs de saída
+            └── exception/      # Exceções customizadas + GlobalExceptionHandler
     └── resources/
-        └── db/migration/       # Flyway SQL migrations (V1__, V2__...)
+        └── db/migration/       # Migrações SQL do Flyway (V1__, V2__...)
 ```
 
 ---
 
-## Contributing
+## Contribuindo
 
-Issues and PRs welcome. If you're adding a feature, open the service layer first — business logic belongs there, not in controllers or repositories.
+Issues e PRs são bem-vindos. Se você está adicionando uma feature, comece pela camada de service — a lógica de negócio pertence ali, não nos controllers ou repositories.
 
-## License
+## Licença
 
-MIT — see [LICENSE](./LICENSE).
+MIT — veja [LICENSE](./LICENSE).
 
 ---
 
 <div align="center">
 
-Built by [Andrius Anselmi](https://github.com/Andrius-Anselmi) · [LinkedIn](https://www.linkedin.com/in/andrius-anselmi)
+Feito por [Andrius Anselmi](https://github.com/Andrius-Anselmi) · [LinkedIn](https://www.linkedin.com/in/andrius-anselmi)
 
 </div>
